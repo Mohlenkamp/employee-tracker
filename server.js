@@ -1,5 +1,7 @@
 // Requires
 const inquirer = require('inquirer'); //Inquirer
+const db = require('./db/connection');  
+const cTable = require('console.table');
 const questions = require('./utils/Questions')
 const express = require('express');
 const apiRoutes = require('./routes/apiRoutes');
@@ -9,7 +11,7 @@ const PORT = process.env.PORT || 3001;
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.static('public'));
+//app.use(express.static('public')); -- Not needed b/c this is command line
 
 // Use apiRoutes
 app.use('/api', apiRoutes);
@@ -27,20 +29,3 @@ db.connect(err => {
     console.log(`Server running on port ${PORT}`);
   });
 });
-
-
-
-
-
-
-
-
-// Main Program
-
-let cms = []
-managerQuestions()
-    .then (function (data){
-console.log(data);        })
-    .catch(err => {
-      console.log(err);
-    });
