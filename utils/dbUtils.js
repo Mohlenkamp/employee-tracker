@@ -1,11 +1,8 @@
 // This is the file where I'll put all the db functions
-
+const questions = require('./Questions')
 const db = require('../db/connection'); 
 
 // Database Functions
-
-//                INNER JOIN employee m ON m.id = employee.manager_id employee m
-// , CONCAT(m.first_name, ' ', m.last_name) AS 'manager'
 
 function getAllEmployees() { 
     db.query(`SELECT e.id, e.first_name, e.last_name, r.title, d.name as 'department', r.salary, CONCAT(m.first_name, ' ', m.last_name) AS 'manager'
@@ -14,8 +11,9 @@ function getAllEmployees() {
                 WHERE e.role_id = r.id
                 and r.department_id = d.id`, (err, rows) => {
         if (err) {throw err}
-        else{
-        return console.table(rows)};
+        else
+            {console.table(rows);
+            return true};
     })};
 
 function getEmployeesByDepartment(department='') {
@@ -27,22 +25,24 @@ function getEmployeesByDepartment(department='') {
                 and d.name = ?`,[department], (err, rows) => {
         if (err) {throw err}
         else{
-        return console.table(rows)};
-    })};
+            {console.table(rows);
+            return true};
+    }})};
 
 function getAllDepartments() {
-    db.query(`SELECT * FROM department`, (err, rows) => {
+    db.query(`SELECT DISTINCT name as 'Departments' FROM department`, (err, rows) => {
    if (err) {throw err}
     else{
-   console.table(rows)};
+        return console.table(rows)}
     })};
 
 function getAllRoles()
-{db.query(`SELECT * FROM role`, (err, rows) => {
+{db.query(`SELECT DISTINCT title as 'Roles' FROM role`, (err, rows) => {
     if (err) {throw err}
      else{
-    console.table(rows)};
- })};
+        {console.table(rows);
+            return true};
+ }})};
 
  const getEmployeeByID2 = id => {
 console.log (id)

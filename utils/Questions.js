@@ -2,26 +2,40 @@
 
 // Requires
 const inquirer = require('inquirer'); //Inquirer
-
-
+const { getAllEmployees,
+  getEmployeesByDepartment,
+  getAllDepartments,
+  getAllRoles,
+  getEmployeeByID, 
+  getEmployeeByID2,
+} = require('../utils/dbUtils')
 // Question arrays
 
-const mainQuestions = () => {
-    return inquirer.prompt([
+const mainQuestions2 = () => {
+    inquirer.prompt([
     {
-        type: 'rawlist',
-        name: 'main-menu',
+        type: 'list',
+        name: 'mainMenu',
         message: 'What would you like to do?',
         choices: ['View all departments', 'View all roles','View all employees', 'Add a department','Add a role','Add an employee', 'Update an employee role', 'Use bonus features', 'Exit the application']
-    },
-    {
-        type: 'rawlist',
-        name: 'bonus-menu',
-        message: 'What would you like to do?',
-        choices: ['Update employee managers', 'View employees by manager','View employees by department', 'Delete a department', 'Delete a role', 'Delete an employee', 'View total budget of a department', 'Return to Main Menu', 'Exit the application'],
-        when: (main-menubar.choices[0]==='Use bonus features')
     }
-])}
+    ])
+    .then (function(answers){ 
+      switch (answers.mainMenu){
+      case 'View all departments': {getAllDepartments(); mainQuestions(); break;}
+      case 'View all roles': {getAllRoles(); mainQuestions(); break;}
+      case 'View all employees': {getAllEmployees(); mainQuestions(); break;}
+      case 'Add a department': {console.log('Add Dept'); break;}
+      case 'Add a role': {console.log('Add role'); break;}
+      case 'Add an employee': {console.log('Add employee'); break;}
+      case 'Update an employee role': {console.log('Update Role'); break;}
+      case 'Use bonus features': {console.log('Bonus'); break;}
+      case 'Exit the application': {console.log('Quit'); break;}
+
+  default: {console.log('Error in switch/case logic mainQuestions')
+}}})
+    return false;
+}    
 
 const addEmployee = () => {
     return inquirer.prompt([
@@ -65,6 +79,6 @@ const addEmployee = () => {
 
 
 module.exports = {
-    mainQuestions,
+    mainQuestions2,
     addEmployee
 }
