@@ -8,49 +8,51 @@ const { getAllEmployees,
   getEmployeesByDepartment,
   getAllDepartments,
   getAllRoles,
-  getEmployeeByID,
+  getEmployeeByManagerID,
   insertDepartment,
-  insertRole
+  insertRole,
+  insertEmployee,
+  updateEmployeeRole
 } = require('../utils/dbUtils')
 
+// Seeding Department Choices 
 let defaultDeptChoices =[]
 defaultDeptChoices.push({
   'name': 'Administration',
-  'value': '1'
+  'value': 1
 }, {
   'name': 'Human Resources',
-  'value': '2'
+  'value': 2
 }, {
     'name': 'Accounting',
-    'value': '3'
+    'value': 3
 }, {
   'name': 'Sales',
-  'value': '4'
+  'value': 4
 }, {
   'name': 'Production',
-  'value': '5'
+  'value': 5
 }, {
   'name': 'Customer Relations',
-  'value': '6'
+  'value': 6
 }, {
   'name': 'IT',
-  'value': '7'
+  'value': 7
 }, {
   'name': 'Legal',
-  'value': '8'
+  'value': 8
 }, {
   'name': 'Resource Pool',
-  'value': '9'
+  'value': 9
 }
 );
-
+let currentDepartmentCount = 9;
 
 
 // Functions
 
-
-
 function init() {
+  // Splash screen at beginning
   figlet('Employee Tracker', function (err, data) {
     if (err) {
       console.log('Something went wrong...');
@@ -65,6 +67,7 @@ function init() {
 
 
 function viewEmployees() {
+  // Required function 3 - View all employees
   getAllEmployees()
     .then(([rows]) => {
       let employees = rows;
@@ -74,22 +77,30 @@ function viewEmployees() {
     .then(() => mainQuestions());
 }
 
-function departmentChoices(deptChoices) {
-  getAllDepartments()
-    .then(([rows]) => {
-      let departments = rows;
-      for (i = 0; 1 < departments.length; i++) {
-        let deptID = getIdByDepartment(departments[i])
-        console.log(departments[1], deptID)
-        deptChoices.push({
-          "name": departments[i],
-          "value": departments[i]
-        })
-      }
-    })
-};
+function viewEmployeesByManager(manager_id){
+  // Bonus function 2 - View employees by department
+  getEmployeeByManagerID(manager_id)
+  .then(([rows]) => {
+    let employees = rows;
+    console.log("\n");
+    console.table(employees);
+  })
+  .then(() => mainQuestions());
+}
+
+function viewEmployeesByDepartment(dept_id){
+  // Bonus function 3 - View employees by department
+  getEmployeesByDepartment(dept_id)
+  .then(([rows]) => {
+    let employees = rows;
+    console.log("\n");
+    console.table(employees);
+  })
+  .then(() => mainQuestions());
+}
 
 function viewDepartments() {
+  // Required function 1 - View all departments
   getAllDepartments()
     .then(([rows]) => {
       let department = rows;
@@ -100,6 +111,7 @@ function viewDepartments() {
 }
 
 function viewRoles() {
+  // Required function 2 - View all roles
   getAllRoles()
     .then(([rows]) => {
       let roles = rows;
@@ -110,29 +122,56 @@ function viewRoles() {
 }
 
 function addDepartment(department) {
+  // Required function 4 - Add a department
   insertDepartment(department)
+  currentDepartmentCount++
   defaultDeptChoices.push({
     'name': department,
-    'value': getIdByDepartment(department)
+    'value': currentDepartmentCount
   })
   viewDepartments()
 }
 
 function addRole(title, salary, department_id) {
-  console.log(title, salary, Promise.resolve(department_id))
+  // Required function 5 - Add a role
   insertRole(title, salary, department_id)
-  viewRoles()
+  .then (() => viewRoles())  // Figured I'd just re-use that function b/c you'll want to see the insert
 }
 
+function addEmployee(first_name, last_name, role_id, department_id) {
+  // Required function 6 - Add an employee
+  insertEmployee(first_name, last_name, role_id, department_id)
+  .then (() => viewEmployees())
+}
 
-// Question arrays
+function updateEmployee(employee_id, role_id) {
+  // Required function 7 - Update an employee's role
+  updateEmployeeRole(employee_id, role_id)
+  .then (() => viewEmployees())
+}
+
+// Question array -- Normally, I would've broken them up into different functions, but it was
+// easier for me to do it all inside the one array for this assignment.
 const mainQuestions = () => {
   return inquirer.prompt([
     {
       type: 'list',
       name: 'mainMenu',
       message: 'What would you like to do?',
-      choices: ['View all departments', 'View all roles', 'View all employees', 'Add a department', 'Add a role', 'Add an employee', 'Update an employee role', 'Use bonus features', 'Exit the application']
+      choices: ['View all departments', 'View all roles', 'View all employees','View employees within department(Bonus)', 'View employees by Manager(Bonus)','Add a department', 'Add a role', 'Add an employee', 'Update an employee role', 'Exit the application']
+    },
+    {
+      type: 'rawlist',
+      name: 'view_Dept',
+      message: 'View employees from which department?',
+      choices: defaultDeptChoices,
+      when: ({ mainMenu }) => (mainMenu === 'View employees within department(Bonus)'),
+    },
+    {
+      type: 'input',
+      name: 'view_Manager',
+      message: 'View employees reporting to which manager ID?',
+      when: ({ mainMenu }) => (mainMenu === 'View employees by Manager(Bonus)'),
     },
     {
       type: 'input',
@@ -175,9 +214,71 @@ const mainQuestions = () => {
           return false;
         }
       }
+    },
+    {
+      type: 'rawlist',
+      name: 'newRoleDeptID',
+      message: 'What department are you assigning?',
+      choices: defaultDeptChoices,
+      when: ({ mainMenu }) => (mainMenu === 'Add a role'),
+    },
+    {
+      type: 'input',
+      name: 'newfirst_name',
+      message: 'What is your new employee first name?',
+      when: ({ mainMenu }) => (mainMenu === 'Add an employee'),
+      validate: first_name => {
+        if (first_name) {
+          return true;
+        } else {
+          console.log('You need to enter the first name');
+          return false;
+        }
+      }
+    },
+    {
+      type: 'input',
+      name: 'newlast_name',
+      message: 'What is your new employee last name?',
+      when: ({ mainMenu }) => (mainMenu === 'Add an employee'),
+      validate: last_name => {
+        if (last_name) {
+          return true;
+        } else {
+          console.log('You need to enter the last name');
+          return false;
+        }
+      }
+    },
+    {
+      type: 'input',
+      name: 'newEmpl_role_id',
+      message: 'What is your new employee role ID?',
+      when: ({ mainMenu }) => (mainMenu === 'Add an employee')
+      
+    },
+    {
+      type: 'input',
+      name: 'newEmpl_manager_id',
+      message: 'What is your new employee manager ID?',
+      when: ({ mainMenu }) => (mainMenu === 'Add an employee')
+    },
+    {
+      type: 'input',
+      name: 'updateEmployeeID',
+      message: 'Which employee ID are you wanting to update?',
+      when: ({ mainMenu }) => (mainMenu === 'Update an employee role'),
+    },
+    {
+      type: 'input',
+      name: 'updateEmployeeRoleID',
+      message: 'Which role ID do you want to change into?',
+      when: ({ mainMenu }) => (mainMenu === 'Update an employee role'),
     }
+
   ])
     .then(function (answers) {
+      // Here's where I parse the answers into the individual functions
       switch (answers.mainMenu) {
         case 'View all departments': {
           viewDepartments()
@@ -191,21 +292,34 @@ const mainQuestions = () => {
           viewEmployees()
           break;
         }
+        case 'View employees within Department(Bonus)': {
+          //console.log(answers.view_Dept);
+          viewEmployeesByDepartment(answers.view_Dept);
+          break;
+        }
+        case 'View employees by Manager(Bonus)':{
+          viewEmployeesByManager(answers.view_Manager);
+          break;
+        }
         case 'Add a department': {
           addDepartment(answers.newDepartment)
           break;
         }
         case 'Add a role': {
-          // The spec did not say anything about a default department,
-          // so we'll leave that for a later update
-          console.log(answers.newRoleTitle, answers.newRoleSalary)
-          addRole(answers.newRoleTitle, answers.newRoleSalary);
+          //console.log(answers.newRoleTitle, answers.newRoleSalary,answers.newRoleDeptID);
+          addRole(answers.newRoleTitle, answers.newRoleSalary,answers.newRoleDeptID);
           break;
         }
-        case 'Add an employee': { console.log('Add employee'); break; }
-        case 'Update an employee role': { console.log('Update Role'); break; }
+        case 'Add an employee': {
+          addEmployee(answers.newfirst_name, answers.newlast_name, answers.newEmpl_role_id, answers.newEmpl_manager_id);
+          break;
+        }
+        case 'Update an employee role': {
+           //console.log(answers.updateEmployeeID, answers.updateEmployeeRoleID); 
+           updateEmployee(answers.updateEmployeeID, answers.updateEmployeeRoleID)
+           break; }
         case 'Use bonus features': { console.log('Bonus'); break; }
-        case 'Exit the application': { console.log('Quit'); break; }
+        case 'Exit the application': { console.log('Bye'); break; }
 
         default: {
           console.log('Error in switch/case logic mainQuestions')
@@ -213,73 +327,6 @@ const mainQuestions = () => {
       }
     })
 }
-
-const addADepartment = () => {
-  return inquirer.prompt([
-    {
-      type: 'input',
-      name: 'newDepartment',
-      message: 'What is the name of your new department?',
-      validate: deptInput => {
-        if (deptInput) {
-          return true;
-        } else {
-          console.log('You need to enter some department name');
-          return false;
-        }
-      }
-    }
-  ])
-    .then(function (answer) {
-      insertDepartment(answer)
-      defaultDeptChoices.push({
-        'name': answer,
-        'value': answer
-      })
-    })
-}
-
-
-const addEmployee = () => {
-  return inquirer.prompt([
-    {
-      type: 'input',
-      name: 'firstName',
-      message: 'What is the employees FIRST name? (Required)',
-      validate: firstName => {
-        if (firstName) {
-          return true;
-        } else {
-          console.log('You need to enter the employee first name!');
-          return false;
-        }
-      }
-    },
-    {
-      type: 'input',
-      name: 'lastName',
-      message: 'What is the employees LAST name? (Required)',
-      validate: lastName => {
-        if (lastName) {
-          return true;
-        } else {
-          console.log('You need to enter the employee last name!');
-          return false;
-        }
-      }
-    }
-  ])
-}
-
-
-
-
-
-
-
-
-
-
 
 
 module.exports = {
