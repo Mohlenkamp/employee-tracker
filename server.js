@@ -7,11 +7,6 @@ const {init} = require('./utils/Questions')
 const mysql = require('mysql2')
 
 
-
-
-
-
-
 // Main Program
 
 init()
