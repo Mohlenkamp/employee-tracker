@@ -15,7 +15,7 @@ function getAllEmployees() {
   }
 
 function getEmployeesByDepartment(dept_id ='') {
-    let data = db.promise().query(`SELECT e.id, e.first_name, e.last_name, r.title, d.name as 'department'
+    let data = db.promise().query(`SELECT e.id, e.first_name, e.last_name, r.title, r.salary, d.name as 'department'
                 FROM employee e, department d, role r
                 WHERE e.role_id = r.id
                 and r.department_id = d.id
@@ -32,7 +32,7 @@ function getAllDepartments() {
 
 function getAllRoles(){
     let data = db.promise().query(
-        "SELECT id, title as 'Roles', salary, department_id FROM role;"
+        "SELECT r.id, r.title as 'Roles', r.salary, r.department_id, d.name as 'Department' FROM role r, department d WHERE r.department_id = d.id;"
       );
       return data;
     }
@@ -65,6 +65,13 @@ function updateEmployeeRole(employee_id, role_id=''){
                 return data;
              }
 
+function updateEmployeeManager(employee_id, manager_id=''){
+                let data = db.promise().execute(
+                    "UPDATE employee SET manager_id = ? WHERE id = ?;", ([manager_id, employee_id])
+                    );
+                    return data;
+                 }
+
 function getEmployeeByManagerID(manager_id=''){ 
         let data = db.promise().query(
             "SELECT e.id, e.first_name, e.last_name, r.title, d.name AS department, r.salary, CONCAT(m.first_name, ' ', m.last_name) AS manager" +
@@ -76,8 +83,43 @@ function getEmployeeByManagerID(manager_id=''){
         return data;
     }
 
+function getBudgetForDepartment(dept_id=''){
+        let data = db.promise().query(
+            "SELECT d.name as 'Department', SUM(r.salary) as 'Budget' " +
+            "FROM role r " +
+            "LEFT JOIN department d on r.department_id = d.id " +
+            "WHERE r.department_id = ?", [dept_id]);
+        return data;
+        }
 
+function deleteEmployee(employee_id){
+    // Because this table auto-increments the id column, it can/will be out of order after the delete.
+    // It will still work, but there will be a gap in the id sequence.
+            let data = db.promise().execute(
+                "DELETE FROM employee WHERE id = ?;", ([employee_id])
+                );
+                return data;
+             }
+    
+function deleteRole(role_id){
+    // Because this table auto-increments the id column, it can/will be out of order after the delete.
+    // It will still work, but there will be a gap in the id sequence.
+                let data = db.promise().execute(
+                    "DELETE FROM role WHERE id = ?;", ([role_id])
+                    );
+                    return data;
+                 }
 
+function deleteDepartment(dept_id){
+    // Because this table auto-increments the id column, it can/will be out of order after the delete.
+    // It will still work, but there will be a gap in the id sequence.
+                let data = db.promise().execute(
+                    "DELETE FROM department WHERE id = ?;", ([dept_id])
+                    );
+                    return data;
+            }
+
+// Exports
 
  module.exports = {
      getAllEmployees,
@@ -88,5 +130,10 @@ function getEmployeeByManagerID(manager_id=''){
      insertDepartment,
      insertRole,
      insertEmployee,
-     updateEmployeeRole
+     updateEmployeeRole,
+     updateEmployeeManager,
+     getBudgetForDepartment,
+     deleteDepartment,
+     deleteEmployee,
+     deleteRole
     }

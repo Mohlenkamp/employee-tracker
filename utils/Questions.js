@@ -12,42 +12,53 @@ const { getAllEmployees,
   insertDepartment,
   insertRole,
   insertEmployee,
-  updateEmployeeRole
+  updateEmployeeRole,
+  updateEmployeeManager,
+  getBudgetForDepartment,
+  deleteDepartment,
+  deleteRole,
+  deleteEmployee
 } = require('../utils/dbUtils')
 
-// Seeding Department Choices 
-let defaultDeptChoices =[]
-defaultDeptChoices.push({
-  'name': 'Administration',
-  'value': 1
-}, {
-  'name': 'Human Resources',
-  'value': 2
-}, {
-    'name': 'Accounting',
-    'value': 3
-}, {
-  'name': 'Sales',
-  'value': 4
-}, {
-  'name': 'Production',
-  'value': 5
-}, {
-  'name': 'Customer Relations',
-  'value': 6
-}, {
-  'name': 'IT',
-  'value': 7
-}, {
-  'name': 'Legal',
-  'value': 8
-}, {
-  'name': 'Resource Pool',
-  'value': 9
-}
-);
-let currentDepartmentCount = 9;
+let employeeChoices = [];
+let departmentChoices =[];
+let roleChoices = [];
 
+// Seeding Question Choices in case the user doesn't view the data first.
+// This became necessary when I tested updating an employee before I
+// viewed all the employees first.
+function seedEC () {
+  //Employee Choices
+getAllEmployees()
+.then(([rows]) => {
+  employeeChoices.length = 0;  //clear and reset employee choices
+  for (i=0; i<rows.length; i++){
+    employeeChoices[i] = {
+      "name": rows[i].first_name + ' ' + rows[i].last_name,
+      "value": rows[i].id
+    }}})}
+
+function seedDC () {
+  //Department Choices
+  getAllDepartments()
+  .then(([rows]) => {
+    departmentChoices.length = 0;  //clear and reset employee choices
+    for (i=0; i<rows.length; i++){
+      departmentChoices[i] = {
+        "name": rows[i].Departments,
+        "value": rows[i].id
+      }}})}
+
+function seedRC() {
+  //Role Choices
+  getAllRoles()
+  .then(([rows]) => {
+    roleChoices.length = 0;  //clear and reset employee choices
+    for (i=0; i<rows.length; i++){
+      roleChoices[i] = {
+        "name": rows[i].Roles,
+        "value": rows[i].id
+      }}})}
 
 // Functions
 
@@ -70,6 +81,13 @@ function viewEmployees() {
   // Required function 3 - View all employees
   getAllEmployees()
     .then(([rows]) => {
+      employeeChoices.length = 0;  //clear and reset employee choices
+      for (i=0; i<rows.length; i++){
+        employeeChoices[i] = {
+          "name": rows[i].first_name + ' ' + rows[i].last_name,
+          "value": rows[i].id
+        }
+      }
       let employees = rows;
       console.log("\n");
       console.table(employees);
@@ -103,6 +121,13 @@ function viewDepartments() {
   // Required function 1 - View all departments
   getAllDepartments()
     .then(([rows]) => {
+      departmentChoices.length = 0;  //clear and reset employee choices
+      for (i=0; i<rows.length; i++){
+        departmentChoices[i] = {
+          "name": rows[i].Departments,
+          "value": rows[i].id
+        }
+      }
       let department = rows;
       console.log("\n");
       console.table(department);
@@ -110,10 +135,34 @@ function viewDepartments() {
     .then(() => mainQuestions());
 }
 
+function viewDepartmentBudget(dept_id) {
+  // Bonus function 5 - View budget for a department
+  getEmployeesByDepartment(dept_id)
+  .then(([rows]) => {
+    let employees = rows;
+    console.log("\n");
+    console.table(employees);
+  })
+  .then (() => getBudgetForDepartment(dept_id))
+    .then(([rows]) => {
+      let department = rows;
+      console.log("\n");
+      console.table(department);
+    })
+  .then(() => mainQuestions());
+}
+
 function viewRoles() {
   // Required function 2 - View all roles
   getAllRoles()
     .then(([rows]) => {
+      roleChoices.length = 0;  //clear and reset employee choices
+      for (i=0; i<rows.length; i++){
+        roleChoices[i] = {
+          "name": rows[i].Roles,
+          "value": rows[i].id
+        }
+      }
       let roles = rows;
       console.log("\n");
       console.table(roles);
@@ -123,13 +172,12 @@ function viewRoles() {
 
 function addDepartment(department) {
   // Required function 4 - Add a department
-  insertDepartment(department)
-  currentDepartmentCount++
-  defaultDeptChoices.push({
-    'name': department,
-    'value': currentDepartmentCount
-  })
-  viewDepartments()
+  insertDepartment(department);
+//  currentDepartmentCount++ deprecated b/c I'm resetting the array in the viewDepartments()
+  // departmentChoices.push({
+  //   'name': department,
+  //   'value': currentDepartmentCount
+  viewDepartments();
 }
 
 function addRole(title, salary, department_id) {
@@ -144,9 +192,33 @@ function addEmployee(first_name, last_name, role_id, department_id) {
   .then (() => viewEmployees())
 }
 
-function updateEmployee(employee_id, role_id) {
+function changeEmployeeRole(employee_id, role_id) {
   // Required function 7 - Update an employee's role
   updateEmployeeRole(employee_id, role_id)
+  .then (() => viewEmployees())
+}
+
+function changeEmployeeManager(employee_id, manager_id) {
+  // Bonus function 1 - Update an employee's manager
+  updateEmployeeManager(employee_id, manager_id)
+  .then (() => viewEmployees())
+}
+
+function removeDepartment(dept_id){
+  // Bonus function 4.1 - Remove a department
+  deleteDepartment(dept_id)
+  .then (() => viewDepartments())
+}
+
+function removeRole(role_id){
+  // Bonus function 4.2 - Remove a role
+  deleteRole(role_id)
+  .then (() => viewRoles())
+}
+
+function removeEmployee(employee_id){
+  // Bonus function 4.3 - Remove an employee
+  deleteEmployee(employee_id)
   .then (() => viewEmployees())
 }
 
@@ -158,20 +230,50 @@ const mainQuestions = () => {
       type: 'list',
       name: 'mainMenu',
       message: 'What would you like to do?',
-      choices: ['View all departments', 'View all roles', 'View all employees','View employees within department(Bonus)', 'View employees by Manager(Bonus)','Add a department', 'Add a role', 'Add an employee', 'Update an employee role', 'Exit the application']
+      choices: ['View all departments', 'View all roles', 'View all employees','View employees within Department(Bonus)', 'View employees by Manager(Bonus)', 'View total utilized budget(Bonus)', 'Add a department', 'Add a role', 'Add an employee', 'Update an employee role', 'Update an employee manager(Bonus)', 'Delete Department(Bonus)','Delete Role(Bonus)','Delete Employee(Bonus)','Exit the application']
     },
     {
-      type: 'rawlist',
-      name: 'view_Dept',
+      type: 'list',
+      name: 'chooseDepartment',
+      message: 'Delete which department?',
+      choices: departmentChoices,
+      when: ({ mainMenu }) => (mainMenu === 'Delete Department(Bonus)'),
+    },
+    {
+      type: 'list',
+      name: 'chooseEmployee',
+      message: 'Choose employee',
+      choices: employeeChoices,
+      when: ({ mainMenu }) => (mainMenu === 'Delete Employee(Bonus)')
+
+    },
+    {
+      type: 'list',
+      name: 'chooseRole',
+      message: 'Which role do you want to delete?',
+      choices: roleChoices,
+      when: ({ mainMenu }) => (mainMenu === 'Delete Role(Bonus)')
+    },
+    {
+      type: 'list',
+      name: 'chooseDepartment',
       message: 'View employees from which department?',
-      choices: defaultDeptChoices,
-      when: ({ mainMenu }) => (mainMenu === 'View employees within department(Bonus)'),
+      choices: departmentChoices,
+      when: ({ mainMenu }) => (mainMenu === 'View employees within Department(Bonus)')
     },
     {
-      type: 'input',
-      name: 'view_Manager',
-      message: 'View employees reporting to which manager ID?',
-      when: ({ mainMenu }) => (mainMenu === 'View employees by Manager(Bonus)'),
+      type: 'list',
+      name: 'chooseEmployee',
+      message: 'View employees reporting to which manager ID?',  //There's no spec about who manages who, so it can be anyone
+      choices: employeeChoices,
+      when: ({ mainMenu }) => (mainMenu === 'View employees by Manager(Bonus)')
+    },
+    {
+      type: 'list',
+      name: 'chooseDepartment',
+      message: 'View budget from which department?',
+      choices: departmentChoices,
+      when: ({ mainMenu }) => (mainMenu === 'View total utilized budget(Bonus)')
     },
     {
       type: 'input',
@@ -216,11 +318,11 @@ const mainQuestions = () => {
       }
     },
     {
-      type: 'rawlist',
-      name: 'newRoleDeptID',
-      message: 'What department are you assigning?',
-      choices: defaultDeptChoices,
-      when: ({ mainMenu }) => (mainMenu === 'Add a role'),
+      type: 'list',
+      name: 'chooseDepartment',
+      message: 'What department are you assigning to this new role?',
+      choices: departmentChoices,
+      when: ({ mainMenu }) => (mainMenu === 'Add a role')
     },
     {
       type: 'input',
@@ -251,29 +353,47 @@ const mainQuestions = () => {
       }
     },
     {
-      type: 'input',
-      name: 'newEmpl_role_id',
-      message: 'What is your new employee role ID?',
+      type: 'list',
+      name: 'chooseRole',
+      message: 'What is your new employee role?',
+      choices: roleChoices,
       when: ({ mainMenu }) => (mainMenu === 'Add an employee')
       
     },
     {
-      type: 'input',
-      name: 'newEmpl_manager_id',
-      message: 'What is your new employee manager ID?',
+      type: 'list',
+      name: 'chooseEmployee',
+      message: 'Who is managing your new employee?',
+      choices: employeeChoices,
       when: ({ mainMenu }) => (mainMenu === 'Add an employee')
     },
     {
-      type: 'input',
-      name: 'updateEmployeeID',
+      type: 'list',
+      name: 'chooseEmployee',
       message: 'Which employee ID are you wanting to update?',
-      when: ({ mainMenu }) => (mainMenu === 'Update an employee role'),
+      choices: employeeChoices,
+      when: ({ mainMenu }) => (mainMenu === 'Update an employee role')
     },
     {
-      type: 'input',
-      name: 'updateEmployeeRoleID',
-      message: 'Which role ID do you want to change into?',
-      when: ({ mainMenu }) => (mainMenu === 'Update an employee role'),
+      type: 'list',
+      name: 'chooseRole',
+      message: 'Which role do you want to change into?',
+      choices: roleChoices,
+      when: ({ mainMenu }) => (mainMenu === 'Update an employee role')
+    },
+    {
+      type: 'list',
+      name: 'chooseEmployee',
+      message: 'Which employee ID are you wanting to update?',
+      choices: employeeChoices,
+      when: ({ mainMenu }) => (mainMenu === 'Update an employee manager(Bonus)')
+    },
+    {
+      type: 'list',
+      name: 'chooseEmployee2',
+      message: 'Which person do you want to be their manager?',
+      choices: employeeChoices,
+      when: ({ mainMenu }) => (mainMenu === 'Update an employee manager(Bonus)')
     }
 
   ])
@@ -294,11 +414,15 @@ const mainQuestions = () => {
         }
         case 'View employees within Department(Bonus)': {
           //console.log(answers.view_Dept);
-          viewEmployeesByDepartment(answers.view_Dept);
+          viewEmployeesByDepartment(answers.chooseDepartment);
           break;
         }
         case 'View employees by Manager(Bonus)':{
-          viewEmployeesByManager(answers.view_Manager);
+          viewEmployeesByManager(answers.chooseEmployee);
+          break;
+        }
+        case  'View total utilized budget(Bonus)':{
+          viewDepartmentBudget(answers.chooseDepartment);
           break;
         }
         case 'Add a department': {
@@ -307,19 +431,41 @@ const mainQuestions = () => {
         }
         case 'Add a role': {
           //console.log(answers.newRoleTitle, answers.newRoleSalary,answers.newRoleDeptID);
-          addRole(answers.newRoleTitle, answers.newRoleSalary,answers.newRoleDeptID);
+          addRole(answers.newRoleTitle, answers.newRoleSalary,answers.chooseDepartment);
           break;
         }
         case 'Add an employee': {
-          addEmployee(answers.newfirst_name, answers.newlast_name, answers.newEmpl_role_id, answers.newEmpl_manager_id);
+          addEmployee(answers.newfirst_name, answers.newlast_name, answers.chooseRole, answers.chooseEmployee);
           break;
         }
         case 'Update an employee role': {
            //console.log(answers.updateEmployeeID, answers.updateEmployeeRoleID); 
-           updateEmployee(answers.updateEmployeeID, answers.updateEmployeeRoleID)
-           break; }
-        case 'Use bonus features': { console.log('Bonus'); break; }
-        case 'Exit the application': { console.log('Bye'); break; }
+           changeEmployeeRole(answers.chooseEmployee, answers.chooseRole)
+           break; 
+          }
+        case 'Update an employee manager(Bonus)': { 
+          //console.log(answers.updateEmployeeID, answers.updateEmployeeManagerID); 
+          changeEmployeeManager(answers.chooseEmployee, answers.chooseEmployee2)
+          break; 
+        }
+        case 'Delete Department(Bonus)':{
+          removeDepartment(answers.chooseDepartment);
+          break;
+        }
+        case 'Delete Role(Bonus)':{
+          removeRole(answers.chooseRole);
+          break;
+        }
+        case 'Delete Employee(Bonus)':{
+          //console.log(answers.chooseEmployee)
+          removeEmployee(answers.chooseEmployee);
+          break;
+        }
+        case 'Exit the application': { 
+          console.log('Bye'); 
+          process.exit();
+          //break; 
+        }
 
         default: {
           console.log('Error in switch/case logic mainQuestions')
@@ -330,5 +476,8 @@ const mainQuestions = () => {
 
 
 module.exports = {
-  init
+  init,
+  seedEC,
+  seedDC,
+  seedRC
 }

@@ -50,14 +50,14 @@ VALUES
 
 INSERT INTO role (title, salary, department_id)
 VALUES
-('Manager', 100000.00, 1),
-('Manager', 100000.00, 2),
-('Manager', 100000.00, 3),
-('Manager', 100000.00, 4),
-('Manager', 100000.00, 5),
-('Manager', 100000.00, 6),
-('Manager', 100000.00, 7),
-('Manager', 100000.00, 8),
+('Manager-Admin', 100000.00, 1),
+('Manager-HR', 100000.00, 2),
+('Manager-Accounting', 100000.00, 3),
+('Manager-Sales', 100000.00, 4),
+('Manager-Prod', 100000.00, 5),
+('Manager-Customer', 100000.00, 6),
+('Manager-IT', 100000.00, 7),
+('Manager-Legal', 100000.00, 8),
 ('Director', 150000.00, 1),
 ('Executive', 125000.00, 1),
 ('Assistant', 60000.00, 1),
