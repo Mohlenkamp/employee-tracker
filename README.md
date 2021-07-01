@@ -8,10 +8,11 @@
 
 ## GitPages Location: n/a
 
-## Walkthrough Video(s): 
+## Walkthrough Video(s): (using Screencast Free Version / Google Drive)
 
-Part 1: 
-Part 2: 
+Part 1: https://drive.google.com/file/d/1VuuPWyNAdFF5X7xKr-jXF85HcTQhJRpC/view  Time 5:00 
+
+Part 2: https://drive.google.com/file/d/1tGPnFTaOc0gOex3cUEOJOjXODbPNCyBB/view  Time 3:28 
 
 ## Description 
 
