@@ -42,7 +42,7 @@ function seedDC () {
   //Department Choices
   getAllDepartments()
   .then(([rows]) => {
-    departmentChoices.length = 0;  //clear and reset employee choices
+    departmentChoices.length = 0;  //clear and reset department choices
     for (i=0; i<rows.length; i++){
       departmentChoices[i] = {
         "name": rows[i].Departments,
@@ -53,7 +53,7 @@ function seedRC() {
   //Role Choices
   getAllRoles()
   .then(([rows]) => {
-    roleChoices.length = 0;  //clear and reset employee choices
+    roleChoices.length = 0;  //clear and reset role choices
     for (i=0; i<rows.length; i++){
       roleChoices[i] = {
         "name": rows[i].Roles,
@@ -121,7 +121,7 @@ function viewDepartments() {
   // Required function 1 - View all departments
   getAllDepartments()
     .then(([rows]) => {
-      departmentChoices.length = 0;  //clear and reset employee choices
+      departmentChoices.length = 0;  //clear and reset department choices
       for (i=0; i<rows.length; i++){
         departmentChoices[i] = {
           "name": rows[i].Departments,
@@ -156,7 +156,7 @@ function viewRoles() {
   // Required function 2 - View all roles
   getAllRoles()
     .then(([rows]) => {
-      roleChoices.length = 0;  //clear and reset employee choices
+      roleChoices.length = 0;  //clear and reset role choices
       for (i=0; i<rows.length; i++){
         roleChoices[i] = {
           "name": rows[i].Roles,
